@@ -1,0 +1,11 @@
+{
+    "Author": "NightmareXIV",
+    "Name": "StandalonePluginManager",
+    "InternalName": "StandalonePluginManager",
+    "Description": "- Simplifies installation and upgrade process for plugins installed manually.",
+    "ApplicableVersion": "any",
+    "Punchline": "Simplifies installation and upgrade process for plugins installed manually.",
+    "RepoUrl": "https://github.com/NightmareXIV/StandalonePluginManager",
+    "AcceptsFeedback": false,
+    "DalamudApiLevel": 13
+}
