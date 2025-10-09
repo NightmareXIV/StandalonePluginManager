@@ -1,4 +1,6 @@
-﻿using ECommons.SimpleGui;
+﻿using ECommons.Automation.NeoTaskManager;
+using ECommons.Reflection;
+using ECommons.SimpleGui;
 using StandalonePluginManager.SPMData;
 using System;
 using System.Collections.Generic;
@@ -116,7 +118,7 @@ public sealed class MainWindow : ConfigWindow
 
             var internalName = d.Manifest?.InternalName ?? Path.GetFileNameWithoutExtension(d.MainFileName);
             var path = Utils.GetDevPluginPathName(internalName);
-            var installationNewPath = Path.Combine(Svc.PluginInterface.ConfigDirectory.Parent.FullName, "customPlugins", internalName);
+            var installationNewPath = Path.Combine(Svc.PluginInterface.ConfigDirectory.Parent.Parent.FullName, "customPlugins", internalName);
             if(path != "")
             {
                 ImGuiEx.Text(EColor.GreenBright, UiBuilder.IconFont, "\uf021");
@@ -144,7 +146,12 @@ public sealed class MainWindow : ConfigWindow
                                     Utils.AddDevPlguinLocation(Path.Combine(installationNewPath, d.MainFileName), true);
                                     if(Error == "")
                                     {
-                                        Status = "Plugin successfully installed. You will need to open plugin installer and enable it.";
+                                        Status = "Plugin successfully installed. SPM will now attempt to enable it. If it fails, please open plugin installer and enable it manually. ";
+                                        var tm = new TaskManager();
+                                        tm.Enqueue(() => Svc.Commands.ProcessCommand("/xlplugins"));
+                                        tm.Enqueue(() => Svc.Commands.ProcessCommand("/xlplugins"));
+                                        tm.Enqueue(() => Svc.Commands.ProcessCommand($"/xlenableplugin {internalName}"));
+                                        tm.Enqueue(() => tm.Dispose());
                                     }
                                 });
                             });
@@ -158,7 +165,12 @@ public sealed class MainWindow : ConfigWindow
                                 {
                                     if(Error == "")
                                     {
-                                        Status = "Plugin successfully updated. If auto-reload was disabled, you will need to open plugin installer and reload the plugin.";
+                                        Status = "Plugin successfully updated. SPM will now attempt to enable it. If it fails, please open plugin installer and enable it manually. ";
+                                        var tm = new TaskManager();
+                                        tm.Enqueue(() => Svc.Commands.ProcessCommand("/xlplugins"));
+                                        tm.Enqueue(() => Svc.Commands.ProcessCommand("/xlplugins"));
+                                        tm.Enqueue(() => Svc.Commands.ProcessCommand($"/xlenableplugin {internalName}"));
+                                        tm.Enqueue(() => tm.Dispose());
                                     }
                                 });
                             });
