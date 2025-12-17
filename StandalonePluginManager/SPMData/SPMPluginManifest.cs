@@ -8,7 +8,7 @@ namespace StandalonePluginManager.SPMData;
 /// <summary>
 /// Information about a plugin, packaged in a json file with the DLL.
 /// </summary>
-public class SPMPluginManifest : IPluginManifest
+public class SPMPluginManifest
 {
     /// <inheritdoc/>
     [JsonProperty]

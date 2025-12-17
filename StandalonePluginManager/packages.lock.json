@@ -1,7 +1,7 @@
 {
   "version": 1,
   "dependencies": {
-    "net9.0-windows7.0": {
+    "net10.0-windows7.0": {
       "DalamudPackager": {
         "type": "Direct",
         "requested": "[2.1.13, )",
@@ -13,6 +13,20 @@
         "requested": "[1.0.0.1, )",
         "resolved": "1.0.0.1",
         "contentHash": "ta+lQtxQzHkqPC3doDn3ud8MvtwNnTgTIeXqfqu92G4lAy+/UJZ6iEefFH4MRZmX8Z99nUmUJZ4zcRvVMABzjQ=="
+      },
+      "SharpCompress": {
+        "type": "Direct",
+        "requested": "[0.42.1, )",
+        "resolved": "0.42.1",
+        "contentHash": "1GpO8MSF0W6VugHJCJvWm73rpMd2SIjF8I5HzE9Y57D+IhdrIBtLF0qdWFPwIiPXNndvhsxHs9Dj5subTqivUA==",
+        "dependencies": {
+          "ZstdSharp.Port": "0.8.6"
+        }
+      },
+      "ZstdSharp.Port": {
+        "type": "Transitive",
+        "resolved": "0.8.6",
+        "contentHash": "iP4jVLQoQmUjMU88g1WObiNr6YKZGvh4aOXn3yOJsHqZsflwRsxZPcIBvNXgjXO3vQKSLctXGLTpcBPLnWPS8A=="
       },
       "ecommons": {
         "type": "Project"

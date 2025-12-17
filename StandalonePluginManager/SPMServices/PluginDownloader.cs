@@ -1,5 +1,7 @@
-﻿using Dalamud.Plugin.Internal.Types.Manifest;
+﻿using Dalamud.Game.ClientState.Aetherytes;
+using Dalamud.Plugin.Internal.Types.Manifest;
 using ECommons.Networking;
+using SharpCompress.Archives;
 using StandalonePluginManager.SPMData;
 using System;
 using System.Collections.Generic;
@@ -94,7 +96,10 @@ public class PluginDownloader : IDisposable
             }
 
             var data = ms.ToArray();
-            using var zip = new ZipArchive(new MemoryStream(data, writable: false), ZipArchiveMode.Read, leaveOpen: false);
+            using var zip = ArchiveFactory.Open(new MemoryStream(data, writable: false), new SharpCompress.Readers.ReaderOptions()
+            {
+                LeaveStreamOpen = false,
+            });
 
             var descriptor = new PluginDescriptor
             {
@@ -102,15 +107,15 @@ public class PluginDownloader : IDisposable
                 Files = new List<FileInfoData>()
             };
 
-            ZipArchiveEntry mainDllEntry = null;
+            IArchiveEntry mainDllEntry = null;
 
             foreach(var entry in zip.Entries)
             {
-                if(entry.FullName.Contains("/") || entry.FullName.Contains("\\"))
+                if(entry.Key.Contains("/") || entry.Key.Contains("\\"))
                 {
                     continue;
                 }
-                if(entry.FullName.EndsWith(".dll", StringComparison.OrdinalIgnoreCase))
+                if(entry.Key.EndsWith(".dll", StringComparison.OrdinalIgnoreCase))
                 {
                     if(IsDalamudPlugin(entry))
                     {
@@ -130,7 +135,7 @@ public class PluginDownloader : IDisposable
                 return null;
             }
 
-            descriptor.MainFileName = mainDllEntry.FullName;
+            descriptor.MainFileName = mainDllEntry.Key;
             descriptor.MainFile = GetFileInfo(mainDllEntry);
 
             foreach(var entry in zip.Entries)
@@ -139,14 +144,14 @@ public class PluginDownloader : IDisposable
                 {
                     continue;
                 }
-                if(string.IsNullOrEmpty(entry.Name))
+                if(string.IsNullOrEmpty(entry.Key))
                 {
                     continue;
                 }
                 descriptor.Files.Add(GetFileInfo(entry));
             }
 
-            var manifestEntry = FindManifestEntry(zip, mainDllEntry.Name);
+            var manifestEntry = FindManifestEntry(zip, mainDllEntry.Key);
             if(manifestEntry != null)
             {
                 try
@@ -193,18 +198,18 @@ public class PluginDownloader : IDisposable
         }
     }
 
-    private static ZipArchiveEntry FindManifestEntry(ZipArchive zip, string mainDllName)
+    private static IArchiveEntry FindManifestEntry(IArchive zip, string mainDllName)
     {
         var expectedName = Path.GetFileNameWithoutExtension(mainDllName) + ".json";
 
         foreach(var e in zip.Entries)
         {
-            if(e.FullName.Contains("/") || e.FullName.Contains("\\"))
+            if(e.Key.Contains("/") || e.Key.Contains("\\"))
             {
                 continue;
             }
 
-            if(string.Equals(e.Name, expectedName, StringComparison.OrdinalIgnoreCase))
+            if(string.Equals(e.Key, expectedName, StringComparison.OrdinalIgnoreCase))
             {
                 return e;
             }
@@ -214,11 +219,11 @@ public class PluginDownloader : IDisposable
     }
 
 
-    private static MemoryStream OpenSeekable(ZipArchiveEntry entry)
+    private static MemoryStream OpenSeekable(IArchiveEntry entry)
     {
-        var capacity = entry.Length > 0 && entry.Length <= int.MaxValue ? (int)entry.Length : 0;
+        var capacity = entry.Size > 0 && entry.Size <= int.MaxValue ? (int)entry.Size : 0;
         var ms = capacity > 0 ? new MemoryStream(capacity) : new MemoryStream();
-        using(var s = entry.Open())
+        using(var s = entry.OpenEntryStream())
         {
             var buffer = new byte[81920];
             int read;
@@ -231,18 +236,18 @@ public class PluginDownloader : IDisposable
         return ms;
     }
 
-    private static FileInfoData GetFileInfo(ZipArchiveEntry entry)
+    private static FileInfoData GetFileInfo(IArchiveEntry entry)
     {
         var info = new FileInfoData
         {
-            FileName = entry.FullName,
-            FileSize = entry.Length,
+            FileName = entry.Key,
+            FileSize = entry.Size,
             Version = null,
             Platform = null
         };
 
-        if(entry.FullName.EndsWith(".dll", StringComparison.OrdinalIgnoreCase) ||
-            entry.FullName.EndsWith(".exe", StringComparison.OrdinalIgnoreCase))
+        if(entry.Key.EndsWith(".dll", StringComparison.OrdinalIgnoreCase) ||
+            entry.Key.EndsWith(".exe", StringComparison.OrdinalIgnoreCase))
         {
             using var seekable = OpenSeekable(entry);
             using var peReader = new PEReader(seekable, PEStreamOptions.LeaveOpen);
@@ -296,7 +301,7 @@ public class PluginDownloader : IDisposable
         return info;
     }
 
-    private static bool IsDalamudPlugin(ZipArchiveEntry entry)
+    private static bool IsDalamudPlugin(IArchiveEntry entry)
     {
         using var seekable = OpenSeekable(entry);
         using var peReader = new PEReader(seekable, PEStreamOptions.LeaveOpen);
