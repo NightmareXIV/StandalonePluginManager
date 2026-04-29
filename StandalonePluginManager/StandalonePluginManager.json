@@ -7,5 +7,5 @@
     "Punchline": "Simplifies installation and upgrade process for plugins installed manually.",
     "RepoUrl": "https://github.com/NightmareXIV/StandalonePluginManager",
     "AcceptsFeedback": false,
-    "DalamudApiLevel": 14
+    "DalamudApiLevel": 15
 }
